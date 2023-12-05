@@ -7,8 +7,7 @@
 #include "oggstream.h"
 #include "stream_common.h"
 
-pthread_mutex_t mutex_add_hash = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_find_hash = PTHREAD_MUTEX_INITIALIZER;
+pthread_t theora_th, vorbis_th, theora2sdlthread;
 
 int main(int argc, char *argv[]) {
   int res;
@@ -24,16 +23,9 @@ int main(int argc, char *argv[]) {
   atexit(SDL_Quit);
   assert(res == 0);
 
-  // Your code HERE
-  // start the two stream readers (theoraStreamReader and vorbisStreamReader)
-  // each in a thread
-  pthread_t theora_th, vorbis_th;
-  int  iret1, iret2;
-
-  /* Create independent threads each of which will execute function */
-
-  iret1 = pthread_create( &vorbis_th, NULL, vorbisStreamReader, (void*) argv[1]);
-  iret2 = pthread_create( &theora_th, NULL, theoraStreamReader, (void*) argv[1]);
+  // Your code HERE  
+  pthread_create( &vorbis_th, NULL, vorbisStreamReader, (void*) argv[1]);
+  pthread_create( &theora_th, NULL, theoraStreamReader, (void*) argv[1]);
 
   // wait for vorbis thread
   pthread_join( vorbis_th, NULL);
@@ -42,11 +34,13 @@ int main(int argc, char *argv[]) {
   // before leaving
   sleep(1);
 
+  // Cancel them before
+  pthread_cancel(theora_th);
+  pthread_cancel(theora2sdlthread);
+
   // Wait for theora and theora2sdl threads
   pthread_join( theora_th, NULL);
-
-  // TODO
-  /* liberer des choses ? */
+  pthread_join( theora2sdlthread, NULL);
 
   exit(EXIT_SUCCESS);
 }
