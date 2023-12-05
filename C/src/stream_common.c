@@ -65,19 +65,21 @@ struct streamstate *getStreamState(ogg_sync_state *pstate, ogg_page *ppage,
 
     // ADD Your code HERE
     // proteger l'accès à la hashmap
-
+    pthread_mutex_lock( &mutex_add_hash );
     if (type == TYPE_THEORA)
       HASH_ADD_INT(theorastrstate, serial, s);
     else
       HASH_ADD_INT(vorbisstrstate, serial, s);
+    pthread_mutex_unlock( &mutex_add_hash );
 
   } else {
     // proteger l'accès à la hashmap
-
+    pthread_mutex_lock( &mutex_find_hash );
     if (type == TYPE_THEORA)
       HASH_FIND_INT(theorastrstate, &serial, s);
     else
       HASH_FIND_INT(vorbisstrstate, &serial, s);
+    pthread_mutex_unlock( &mutex_find_hash );
 
     // END of your code modification HERE
     assert(s != NULL);
@@ -135,9 +137,13 @@ int decodeAllHeaders(int respac, struct streamstate *s, enum streamtype type) {
       s->headersRead = true;
 
       if (type == TYPE_THEORA) {
-	// BEGIN your modification HERE
+	      // BEGIN your modification HERE
         // lancement du thread gérant l'affichage (draw2SDL)
-        // inserer votre code ici !!
+        pthread_t theora2sdl_th;
+        int  iret1;
+
+        iret1 = pthread_create( &theora2sdl_th, NULL, draw2SDL, (void*) s->serial);
+        
         // END of your modification
         assert(res == 0);
       }

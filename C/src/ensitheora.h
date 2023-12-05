@@ -4,6 +4,7 @@
 #include "ensivideo.h"
 #include <SDL2/SDL.h>
 #include <ogg/ogg.h>
+#include <pthread.h>
 
 #define NBTEX 30
 
